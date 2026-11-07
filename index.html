@@ -567,6 +567,22 @@ main.shell { padding-block: var(--gap) 80px; }
 /* the page is always the same width, scrollbar or not, so nothing (like the logo) shifts between pages */
 html { scrollbar-gutter: stable; }
 @supports not (scrollbar-gutter: stable) { html { overflow-y: scroll; } }
+
+/* text always fits inside a card: long labels shorten with …, long words break, and phones get a little more inner margin */
+.card-meta { min-width: 0; }
+.card-meta span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.card-meta span:last-child { flex: none; }
+.ct, .cs, .cover-title, .cover-desc { overflow-wrap: anywhere; word-break: normal; -webkit-hyphens: auto; hyphens: auto; max-width: 100%; }
+.card-body { min-width: 0; max-width: 100%; }
+@media (max-width: 600px) {
+  .card { padding: 22px 24px; }
+  .ct { font-size: clamp(22px, 6.4vw, 34px); }
+  .cs { font-size: 16px; }
+  .cover-band { padding: 16px 22px 18px; }
+  .cover-title { font-size: clamp(24px, 7vw, 34px); }
+  .lock .card { padding: 22px 24px; }
+  .lock .ct { font-size: clamp(24px, 7vw, 38px); }
+}
 </style>
 <script src="firebase-config.js"></script>
 </head>

@@ -552,6 +552,17 @@ main.shell { padding-block: var(--gap) 80px; }
 .who-pop { width: min(300px, calc(100vw - 2 * var(--gutter))); }
 .toast { max-width: calc(100vw - 2 * var(--gutter)); }
 .site-foot { padding-bottom: calc(var(--gap) + env(safe-area-inset-bottom, 0px)); }
+
+/* phones: cards don't move. New cards appear in place, and flipping is a quick fade instead of a 3D turn */
+@media (hover: none), (max-width: 600px) {
+  .enter-r, .enter-l, .cardstack.dissolve-in { animation: none !important; }
+  .flip, .flip.flipped { transform: none !important; transition: none !important; will-change: auto; }
+  .flip > .card.front, .flip > .card.back { transform: none !important; -webkit-backface-visibility: visible; backface-visibility: visible; transition: opacity .18s ease; }
+  .flip > .card.back { opacity: 0; }
+  .flip.flipped > .card.front { opacity: 0; }
+  .flip.flipped > .card.back { opacity: 1; }
+  .card-zone .cardstack, .card-zone:hover .cardstack { transform: none !important; transition: none !important; }
+}
 </style>
 <script src="firebase-config.js"></script>
 </head>

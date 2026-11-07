@@ -494,6 +494,7 @@ body.lock-mode .site-foot, body.locking .site-foot { display: none; }
 .who-add svg { width: 16px; height: 16px; padding: 6px; box-sizing: content-box; border-radius: 50%; background: var(--hover); }
 .who-add:hover:not(:disabled) { background: var(--hover); }
 .who-add:disabled { opacity: .4; cursor: default; }
+.who-help p { margin: 0; font-size: 13px; line-height: 1.45; color: var(--ink); background: var(--hover); border-radius: 10px; padding: 10px 12px; }
 .who-note { margin: 6px 8px 2px; font-size: 12px; line-height: 1.4; color: var(--mid); }
 @media (max-width: 480px) { .who-name { display: none; } .who-btn { padding-right: 8px; } }
 /* inline panels */
@@ -590,6 +591,7 @@ function touch(deck) { deck.mod = Date.now(); markDirty(deck.id); }
 let backend = null;      // { kind, save(id, body), remove(id), cacheKey? }
 let account = null;      // { name } when signed in to Firebase
 let fb = null, authReady = false, loginMode = 'in', pendingSaves = 0;
+let syncState = 'none', syncError = ''; // none (no keys) | loading | ready | failed
 
 function setSync(s, text, title) {
   const el = $('#sync'); el.dataset.s = s; $('#sync-text').textContent = text; el.title = title || '';
@@ -641,7 +643,7 @@ async function initStore() {
   setSync('local', 'saved on this device');
   if (window.claude && window.claude.use) { render(); return initArtifact(); }
   const cfg = window.FICHEIRO_FIREBASE;
-  if (cfg && cfg.apiKey && cfg.projectId) { render(); renderWho(); return initFirebase(cfg); }
+  if (cfg && cfg.apiKey && cfg.projectId) { syncState = 'loading'; render(); renderWho(); return initFirebase(cfg); }
   render(); renderWho();
 }
 
@@ -685,9 +687,10 @@ async function initFirebase(cfg) {
     try { fs = F.initializeFirestore(app, { localCache: F.persistentLocalCache({ tabManager: F.persistentMultipleTabManager() }) }); }
     catch { fs = F.getFirestore(app); }
     fb = { A, F, fs, auth: A.getAuth(app), unsub: null, uid: null };
+    syncState = 'ready'; renderWho();
     A.onAuthStateChanged(fb.auth, u => { authReady = true; u ? fbStart(u) : fbStop(); });
   } catch (e) {
-    fb = null; authReady = true;
+    fb = null; authReady = true; syncState = 'failed'; syncError = (e && (e.code || e.message)) || '';
     setSync('error', 'saved on this device only', 'Couldn’t reach the sync service.');
     render(); renderWho(); toast('Couldn’t reach the sync service. Working on this device only.');
   }
@@ -768,7 +771,10 @@ function authMessage(code) {
   if (code === 'auth/weak-password') return 'Use at least 6 characters.';
   if (code === 'auth/too-many-requests') return 'Too many tries. Wait a minute, then try again.';
   if (code === 'auth/network-request-failed') return 'No connection. Check your internet and try again.';
-  if (code === 'auth/operation-not-allowed' || code === 'auth/configuration-not-found') return 'Sign-in isn’t switched on yet. Turn on Email/Password in Firebase (see the README).';
+  if (code === 'auth/operation-not-allowed' || code === 'auth/configuration-not-found') return 'Sign-in isn’t switched on yet. In Firebase, turn on Authentication → Sign-in method → Email/Password.';
+  if (code === 'auth/unauthorized-domain') return 'This site’s address isn’t allowed yet. In Firebase, add it under Authentication → Settings → Authorized domains.';
+  if (code === 'auth/invalid-api-key' || code === 'auth/api-key-not-valid.-please-pass-a-valid-api-key.') return 'The keys in firebase-config.js don’t look right. Copy them again from Firebase project settings.';
+  if (code === 'auth/admin-restricted-operation') return 'New accounts are switched off for this site. Turn sign-ups back on in Firebase, or sign in to an existing account.';
   return 'Couldn’t sign in' + (code ? ` (${code})` : '') + '.';
 }
 function renderLogin(app) {
@@ -1601,13 +1607,14 @@ function renderWho() {
         <input type="password" id="who-pass" placeholder="password" autocomplete="current-password" aria-label="Password for ${esc(name)}">
         <div class="who-row"><button class="pill" type="submit">sign in</button><button type="button" class="link" data-act="who-pick" data-u="${esc(name)}">cancel</button></div>
         <p class="who-err" aria-live="polite"></p></form>` : ''}</li>`).join('');
-  const add = who.add ? `<form class="who-form" id="who-new">
+  const add = who.add && !fb ? `<div class="who-form who-help"><p>${syncHelp()}</p><div class="who-row"><button type="button" class="link" data-act="who-add-close">ok</button></div></div>`
+    : who.add ? `<form class="who-form" id="who-new">
       <input id="who-user" placeholder="username" autocomplete="username" autocapitalize="none" spellcheck="false" aria-label="Username">
       <input id="who-newpass" type="password" placeholder="password" autocomplete="${who.mode === 'up' ? 'new-password' : 'current-password'}" aria-label="Password">
       <div class="who-row"><button class="pill" type="submit">${who.mode === 'up' ? 'create' : 'sign in'}</button>
         <button type="button" class="link" data-act="who-mode">${who.mode === 'up' ? 'I already have an account' : 'make a new one instead'}</button></div>
       <p class="who-err" aria-live="polite"></p></form>`
-    : `<button class="who-add" data-act="who-add" ${fb ? '' : 'disabled'}>${PLUS}<span>add new user</span></button>`;
+    : `<button class="who-add" data-act="who-add">${PLUS}<span>add new user</span></button>`;
   wrap.innerHTML = btn + `<div class="pop pop-left who-pop" role="dialog" aria-label="Who’s using this?">
     <p class="who-title">Who’s using this?</p>
     <ul class="who-list">${list}
@@ -1615,13 +1622,18 @@ function renderWho() {
     </ul>
     ${add}
     <p class="who-note">${fb ? 'Sign in on any device to get the same decks. Only names are kept here, never passwords.'
-      : 'Using decks on more than one device needs the one-time sync setup in the README. Until then, decks stay in this browser.'}</p>
+      : syncState === 'loading' ? 'Connecting to sync…' : 'Sync isn’t connected, so decks stay in this browser for now.'}</p>
   </div>`;
   const f = $('#who-pass') || (who.add && $('#who-user')); if (f) f.focus();
 }
+function syncHelp() {
+  if (syncState === 'loading') return 'Still connecting to sync. Try again in a moment.';
+  if (syncState === 'failed') return `Couldn’t connect to Firebase${syncError ? ` (${esc(syncError)})` : ''}. Check the keys in firebase-config.js, and that this site’s address is added in Firebase under Authentication → Settings → Authorized domains. Then reload.`;
+  return 'Accounts aren’t switched on for this site yet: firebase-config.js is still empty. Follow steps 1–5 in the README to get your Firebase keys, paste them into firebase-config.js, upload it to the repository, then reload this page.';
+}
 function whoErr(form, msg) { const e = form.querySelector('.who-err'); if (e) e.textContent = msg; }
 async function whoSubmit(form) {
-  if (!fb) return whoErr(form, 'Sync isn’t set up on this site yet.');
+  if (!fb) return whoErr(form, syncHelp().replace(/<[^>]+>/g, ''));
   const isNew = form.id === 'who-new';
   const name = (isNew ? form.querySelector('#who-user').value : form.dataset.u).trim().toLowerCase();
   const pass = form.querySelector('input[type="password"]').value;
@@ -1687,6 +1699,7 @@ document.addEventListener('click', e => {
     case 'who-forget': forgetProfile(a.dataset.u); if (who.pick === a.dataset.u) who.pick = null; return renderWho();
     case 'who-guest': if (account && fb) fb.A.signOut(fb.auth); return closeWho();
     case 'who-add': who.add = true; who.pick = null; return renderWho();
+    case 'who-add-close': who.add = false; return renderWho();
     case 'who-mode': who.mode = who.mode === 'up' ? 'in' : 'up'; return renderWho();
     case 'copy-export': {
       const ta = $('#cp-text'); ta.select();

@@ -536,6 +536,22 @@ body { touch-action: pan-y pinch-zoom; }
 .links .link[aria-current="true"] { color: var(--ink); }
 .empty-note { font-size: 20px; color: var(--mid); max-width: 30ch; letter-spacing: -.01em; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+/* ===== one set of page margins, used everywhere (kept last so nothing overrides it) ===== */
+:root { --gutter: 30px; --gap: 32px; }
+.shell { padding-left: max(var(--gutter), env(safe-area-inset-left, 0px)); padding-right: max(var(--gutter), env(safe-area-inset-right, 0px)); }
+header.top { padding-block: 16px 0; }
+main.shell { padding-block: var(--gap) 80px; }
+#app, .deck-page, .deck-block { gap: var(--gap); }
+.cards-sec { margin-top: 0; }
+.card-area .ctrl { margin-bottom: 0; padding-inline: 0; }
+.lock-row { margin: -14px 0 0; }
+.lock { padding-left: max(var(--gutter), env(safe-area-inset-left, 0px)); padding-right: max(var(--gutter), env(safe-area-inset-right, 0px)); }
+.lock-top { top: calc(16px + env(safe-area-inset-top, 0px)); right: max(var(--gutter), env(safe-area-inset-right, 0px)); }
+.modal-scrim { padding-left: max(var(--gutter), env(safe-area-inset-left, 0px)); padding-right: max(var(--gutter), env(safe-area-inset-right, 0px)); }
+.who-pop { width: min(300px, calc(100vw - 2 * var(--gutter))); }
+.toast { max-width: calc(100vw - 2 * var(--gutter)); }
+.site-foot { padding-bottom: calc(var(--gap) + env(safe-area-inset-bottom, 0px)); }
 </style>
 <script src="firebase-config.js"></script>
 </head>

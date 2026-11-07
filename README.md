@@ -1,6 +1,6 @@
 # Ficheiro
 
-Simple flashcards. Each card has a front and a back, each with a title and an optional subtitle, and you flip through a deck with the arrows. Sign in with a username and password and your decks follow you to any device. Every device also keeps its own copy, so studying works offline and syncs when you're back online.
+Simple flashcards. Each card has a front and a back, each with a title and an optional subtitle, and you flip through a deck with the arrows. Like picking a profile on Netflix, a **Who's using this?** menu lets each person sign in with a username and password, and their decks follow them to any device. Every device also keeps its own copy, so studying works offline and syncs when you're back online.
 
 ## Files
 
@@ -24,7 +24,7 @@ Accounts need somewhere to live, and GitHub Pages only serves files. Ficheiro us
 6. **Publish on GitHub.** Make a repository (e.g. `ficheiro`) and upload all four files. Then go to *Settings → Pages → Build and deployment → Deploy from a branch*, choose `main` and `/ (root)`, and save. After a minute the app is at `https://<your-github-name>.github.io/ficheiro/`.
 7. **Allow your site.** Back in Firebase: *Authentication → Settings → Authorized domains → Add domain* → `<your-github-name>.github.io`.
 
-Open the site, choose **create an account**, and you're in. Sign in with the same username and password on your phone or any other computer.
+Open the site and press the person button at the top right (**Who's using this?**). Choose **add new user**, pick a username and password, and you're in. On your phone or any other computer, open the same menu and sign in with the same username and password: your decks are there.
 
 ## Good to know
 
@@ -38,6 +38,7 @@ Open the site, choose **create an account**, and you're in. Sign in with the sam
 ## Using it
 
 - **Home.** The cards icon at the top left always takes you back to your decks.
+- **Who's using this?** The person button at the top right lists everyone who has used Ficheiro on this device. Tap a name and enter its password to switch to their decks, **add new user** to make an account (or sign in one that isn't listed yet), or **just this device** to use it without an account. The × next to a name only removes it from this device's list; the account and its decks stay. Only names are kept on the device, never passwords. Decks made under **just this device** move into the first account you sign into here.
 - **Decks.** The home screen lists your decks. Press **+** for **from scratch** (makes "New Deck 1", "New Deck 2" and so on, and opens it) or **import**. Hover a deck for **⋯** (or right-click it; on a phone the ⋯ is always there): rename, download, delete. Drag a deck to reorder it; on a phone, hold it for a moment first.
 - **A deck** opens on its cover, which shows the title; tap it to flip to the deck's description, and press → to go to card 1. Edit the title and description at the top of the page. Tap a card to flip it. Use the **←** **→** buttons, swipe, or the arrow keys to move. **front first / back first** sets which side shows first.
 - **Cover:** pick a colour in the row above the card, or press **cover** next to the colours to upload, change or remove an image. When you upload, drag to frame it and zoom with the slider; you see the final pixel-dithered cover as you adjust.

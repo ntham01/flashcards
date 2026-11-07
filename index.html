@@ -423,7 +423,12 @@ body.locking header.top, body.locking .deck-page { opacity: 0; transition: opaci
 body.lock-mode header.top { display: none; }
 .lock { position: fixed; inset: 0; z-index: 5; display: grid; place-items: center; overflow-y: auto; background: var(--bg);
   padding: max(70px, env(safe-area-inset-top, 0px)) max(30px, env(safe-area-inset-right, 0px)) 120px max(30px, env(safe-area-inset-left, 0px)); }
-.lock-stage { position: relative; width: min(580px, 100%); margin-top: 50px; }
+.lock-stage { position: relative; width: min(860px, 100%); margin-top: 50px; }
+/* bigger cards in lock-in, especially on wide screens */
+.lock .card { min-height: clamp(320px, 60vh, 640px); padding: clamp(20px, 3vw, 34px) clamp(22px, 4vw, 48px); }
+.lock .ct { font-size: clamp(30px, 4.4vw, 58px); }
+.lock .cs { font-size: clamp(18px, 1.9vw, 26px); max-width: 40ch; }
+.lock .card-meta, .lock .card-foot { font-size: 13px; }
 .lock-stage .cardstack { margin-bottom: 0; }
 .lock-stage .lock-ctrl { position: absolute; left: 0; right: 0; top: calc(100% + 36px); margin: 0; }
 .lock-top { position: fixed; z-index: 15; top: calc(14px + env(safe-area-inset-top, 0px)); right: max(16px, env(safe-area-inset-right, 0px)); }
@@ -454,6 +459,43 @@ header.top.page-in { animation: page-in .32s cubic-bezier(.4, 0, .2, 1); }
 .site-foot a { color: var(--mid); text-decoration: none; border-bottom: 1px solid var(--rule); transition: color .15s, border-color .15s; }
 .site-foot a:hover { color: var(--ink); border-bottom-color: var(--ink); }
 body.lock-mode .site-foot, body.locking .site-foot { display: none; }
+/* who's using this */
+.head-right { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.who-wrap { position: relative; }
+.who-btn { display: inline-flex; align-items: center; gap: 8px; padding: 3px 10px 3px 3px; border-radius: 999px; border: 1px solid var(--rule); color: var(--ink);
+  font-size: 13px; font-weight: 600; transition: border-color .15s, background .15s; }
+.who-btn:hover, .who-btn[aria-expanded="true"] { border-color: var(--ink); }
+.who-btn > svg:last-child { width: 14px; height: 14px; color: var(--mid); transition: transform .25s ease; }
+.who-btn[aria-expanded="true"] > svg:last-child { transform: rotate(180deg); }
+.who-name { max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.avatar { width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; flex: none;
+  background: var(--deck); color: #F7F6F2; font-size: 13px; font-weight: 700; }
+.avatar.guest { background: var(--hover); color: var(--mid); }
+.who-pop { width: min(300px, calc(100vw - 32px)); top: calc(100% + 8px); padding: 12px; gap: 4px; font-size: 15px; }
+.who-title { margin: 0; padding: 4px 8px 8px; font-size: 18px; font-weight: 700; letter-spacing: -.02em; }
+.who-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.who-line { display: flex; align-items: center; gap: 2px; }
+.who-item { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 10px; text-align: left; font-weight: 500; }
+.who-item > span:nth-child(2) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.who-item:hover { background: var(--hover); }
+.who-tick { margin-left: auto; font-size: 11px; font-weight: 600; color: var(--mid); white-space: nowrap; }
+.who-forget { width: 30px; height: 30px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; color: var(--faint); opacity: 0; flex: none; }
+.who-li:hover .who-forget, .who-forget:focus-visible, .touch .who-forget { opacity: 1; }
+.who-forget:hover { color: var(--ink); background: var(--hover); }
+.who-forget svg { width: 14px; height: 14px; }
+.who-form { display: grid; gap: 8px; padding: 6px 8px 10px; }
+.who-form input { width: 100%; border: 1px solid var(--rule); background: var(--bg); color: var(--ink); border-radius: 10px; padding: 9px 12px; font-size: 15px; }
+.who-form input:focus { outline: none; border-color: var(--ink); }
+.who-row { display: flex; align-items: center; gap: 8px 14px; flex-wrap: wrap; }
+.who-row .pill { padding: 9px 18px; font-size: 14px; }
+.who-err { margin: 0; font-size: 12px; color: var(--accent); }
+.who-err:empty { display: none; }
+.who-add { display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 10px; font-weight: 600; text-align: left; }
+.who-add svg { width: 16px; height: 16px; padding: 6px; box-sizing: content-box; border-radius: 50%; background: var(--hover); }
+.who-add:hover:not(:disabled) { background: var(--hover); }
+.who-add:disabled { opacity: .4; cursor: default; }
+.who-note { margin: 6px 8px 2px; font-size: 12px; line-height: 1.4; color: var(--mid); }
+@media (max-width: 480px) { .who-name { display: none; } .who-btn { padding-right: 8px; } }
 /* inline panels */
 .panel-form { display: grid; gap: 22px; border-top: 1px solid var(--rule); padding-top: 22px; }
 .panel-end { display: flex; align-items: center; gap: 10px 24px; flex-wrap: wrap; }
@@ -494,7 +536,7 @@ body.lock-mode .site-foot, body.locking .site-foot { display: none; }
       </g>
     </svg>
   </button>
-  <div class="sync" id="sync" data-s="local"><span id="sync-text">loading</span><button class="link" id="signout" data-act="sign-out" hidden>sign out</button></div>
+  <div class="head-right"><div class="sync" id="sync" data-s="local"><span id="sync-text">loading</span></div><div class="who-wrap" id="who-wrap"></div></div>
 </header></div>
 <main class="shell"><div id="app"></div></main>
 <footer class="site-foot shell">made by <a href="https://nathanieltham.ca" target="_blank" rel="noopener">nathaniel tham</a></footer>
@@ -551,12 +593,11 @@ let fb = null, authReady = false, loginMode = 'in', pendingSaves = 0;
 
 function setSync(s, text, title) {
   const el = $('#sync'); el.dataset.s = s; $('#sync-text').textContent = text; el.title = title || '';
-  $('#signout').hidden = !account;
 }
 function lsGet(k) { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch { return null; } }
 function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch { return false; } }
 function cacheLocal() { if (backend && backend.cacheKey) lsSet(backend.cacheKey, decks); }
-function savedLabel() { return account ? account.name : 'saved'; }
+function savedLabel() { return 'synced'; }
 
 function markDirty(id) {
   dirty.add(id);
@@ -600,8 +641,8 @@ async function initStore() {
   setSync('local', 'saved on this device');
   if (window.claude && window.claude.use) { render(); return initArtifact(); }
   const cfg = window.FICHEIRO_FIREBASE;
-  if (cfg && cfg.apiKey && cfg.projectId) return initFirebase(cfg);
-  render();
+  if (cfg && cfg.apiKey && cfg.projectId) { render(); renderWho(); return initFirebase(cfg); }
+  render(); renderWho();
 }
 
 /* claude.ai artifact storage */
@@ -636,7 +677,6 @@ async function initArtifact() {
 
 /* Firebase account storage (GitHub Pages or any web host) */
 async function initFirebase(cfg) {
-  view = 'login'; render();
   try {
     const base = 'https://www.gstatic.com/firebasejs/10.12.2/';
     const [App, A, F] = await Promise.all([import(base + 'firebase-app.js'), import(base + 'firebase-auth.js'), import(base + 'firebase-firestore.js')]);
@@ -647,16 +687,22 @@ async function initFirebase(cfg) {
     fb = { A, F, fs, auth: A.getAuth(app), unsub: null, uid: null };
     A.onAuthStateChanged(fb.auth, u => { authReady = true; u ? fbStart(u) : fbStop(); });
   } catch (e) {
-    fb = null; authReady = true; view = 'decks';
-    setSync('error', 'saved on this device only', 'Couldn’t load sign-in.');
-    render(); toast('Couldn’t reach the sign-in service. Working on this device only.');
+    fb = null; authReady = true;
+    setSync('error', 'saved on this device only', 'Couldn’t reach the sync service.');
+    render(); renderWho(); toast('Couldn’t reach the sync service. Working on this device only.');
   }
 }
 function fbStart(u) {
   const { F, fs } = fb;
+  if (fb.unsub) { fb.unsub(); fb.unsub = null; } // switching from another person
+  if (lock) { lock = null; document.body.classList.remove('lock-mode', 'locking', 'unlocking'); }
+  if (cm) closeCoverModal();
   fb.uid = u.uid;
   account = { name: (u.email || '').split('@')[0] };
+  rememberProfile(account.name);
   const pendingLocal = lsGet(LS_LOCAL) || {};
+  const moving = Object.keys(pendingLocal).length;
+  if (moving) toast(`Moved ${plural(moving, 'deck')} from this device into ${account.name}`);
   const cacheKey = 'ficheiro.cache.' + u.uid;
   decks = {};
   const cached = lsGet(cacheKey);
@@ -681,7 +727,7 @@ function fbStart(u) {
   setSync('saving', 'syncing');
   view = 'decks';
   resetHist(view);
-  render();
+  render(); renderWho();
   let first = true;
   fb.unsub = F.onSnapshot(F.collection(fs, 'users', u.uid, 'decks'), snap => {
     if (first && !snap.metadata.fromCache) {
@@ -702,12 +748,16 @@ function fbStart(u) {
   }, err => setSync('error', 'sync stopped', (err && err.message) || ''));
   if (navigator.onLine === false) setSync('saving', 'offline, kept on this device');
 }
-function fbStop() {
+function fbStop() { // nobody signed in: use the decks kept in this browser
   if (fb && fb.unsub) { fb.unsub(); fb.unsub = null; }
   if (backend && backend.cacheKey) { try { localStorage.removeItem(backend.cacheKey); } catch {} }
-  account = null; backend = null; decks = {}; sess = null;
-  setSync('local', '');
-  view = 'login'; render();
+  const was = account;
+  account = null; backend = null; sess = null; decks = {};
+  const local = lsGet(LS_LOCAL); if (local) for (const [id, d] of Object.entries(local)) decks[id] = normalize(d, id);
+  if (lock) { lock = null; document.body.classList.remove('lock-mode', 'locking', 'unlocking'); }
+  setSync('local', 'saved on this device');
+  if (was) { view = 'decks'; resetHist(view); toast(`Signed out of ${was.name}`); }
+  render(); renderWho();
 }
 window.addEventListener('online', () => { if (backend && backend.kind === 'firebase' && !pendingSaves) setSync('cloud', savedLabel()); });
 window.addEventListener('offline', () => { if (backend && backend.kind === 'firebase') setSync('saving', 'offline, kept on this device'); });
@@ -825,8 +875,7 @@ function toast(msg) {
 }
 
 function render() {
-  if (fb && !account) view = 'login';
-  if (view === 'login' && (!fb || account)) view = 'decks';
+  if (view === 'login') view = 'decks';
   if (view === 'overview' && !decks[viewDeck]) view = 'decks';
   $('#home-btn').hidden = view === 'login';
   if (view === 'decks') $('#home-btn').setAttribute('aria-current', 'page'); else $('#home-btn').removeAttribute('aria-current');
@@ -1523,9 +1572,74 @@ function restartLock() {
   render();
 }
 
+
+/* ---------- "Who's using this?" ----------
+   Like picking a profile: a list of the people who've used Ficheiro on this device. Pick one and
+   enter their password to load their decks (the same decks on every device they sign in on).
+   "Just this device" uses Ficheiro without an account. Only usernames are remembered here, never passwords. */
+const LS_PROFILES = 'ficheiro.profiles.v1';
+const inClaude = !!(window.claude && window.claude.use);
+let who = { open: false, pick: null, add: false, mode: 'up' };
+const toEmail = u => u + '@ficheiro.example.com';
+function profiles() { const p = lsGet(LS_PROFILES); return Array.isArray(p) ? p : []; }
+function rememberProfile(name) { const p = profiles().filter(x => x !== name); p.unshift(name); lsSet(LS_PROFILES, p.slice(0, 12)); }
+function forgetProfile(name) { lsSet(LS_PROFILES, profiles().filter(x => x !== name)); }
+const PERSON = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="12" cy="8.5" r="3.6" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M5 19.5c1.2-3.4 3.9-5 7-5s5.8 1.6 7 5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>';
+const avatar = name => `<span class="avatar" style="${deckVars(PALETTE[[...name].reduce((h, c) => h + c.charCodeAt(0), 0) % PALETTE.length])}">${esc(name[0].toUpperCase())}</span>`;
+function renderWho() {
+  const wrap = $('#who-wrap'); if (!wrap) return;
+  if (inClaude) { wrap.innerHTML = ''; return; } // on claude.ai, decks already follow your Claude account
+  const cur = account ? account.name : null;
+  const btn = `<button class="who-btn" data-act="who" aria-haspopup="dialog" aria-expanded="${who.open}" aria-label="Who’s using Ficheiro">
+    ${cur ? avatar(cur) : `<span class="avatar guest">${PERSON}</span>`}<span class="who-name">${cur ? esc(cur) : 'this device'}</span>${CHEV}</button>`;
+  if (!who.open) { wrap.innerHTML = btn; return; }
+  const list = profiles().map(name => `<li class="who-li">
+      <div class="who-line"><button class="who-item ${cur === name ? 'on' : ''}" data-act="who-pick" data-u="${esc(name)}">${avatar(name)}<span>${esc(name)}</span>${cur === name ? '<span class="who-tick">signed in</span>' : ''}</button>
+        ${cur === name ? '' : `<button class="who-forget" data-act="who-forget" data-u="${esc(name)}" aria-label="Remove ${esc(name)} from this device">${CLOSE_X}</button>`}</div>
+      ${who.pick === name && cur !== name ? `<form class="who-form" id="who-signin" data-u="${esc(name)}">
+        <input type="text" name="username" autocomplete="username" value="${esc(name)}" hidden>
+        <input type="password" id="who-pass" placeholder="password" autocomplete="current-password" aria-label="Password for ${esc(name)}">
+        <div class="who-row"><button class="pill" type="submit">sign in</button><button type="button" class="link" data-act="who-pick" data-u="${esc(name)}">cancel</button></div>
+        <p class="who-err" aria-live="polite"></p></form>` : ''}</li>`).join('');
+  const add = who.add ? `<form class="who-form" id="who-new">
+      <input id="who-user" placeholder="username" autocomplete="username" autocapitalize="none" spellcheck="false" aria-label="Username">
+      <input id="who-newpass" type="password" placeholder="password" autocomplete="${who.mode === 'up' ? 'new-password' : 'current-password'}" aria-label="Password">
+      <div class="who-row"><button class="pill" type="submit">${who.mode === 'up' ? 'create' : 'sign in'}</button>
+        <button type="button" class="link" data-act="who-mode">${who.mode === 'up' ? 'I already have an account' : 'make a new one instead'}</button></div>
+      <p class="who-err" aria-live="polite"></p></form>`
+    : `<button class="who-add" data-act="who-add" ${fb ? '' : 'disabled'}>${PLUS}<span>add new user</span></button>`;
+  wrap.innerHTML = btn + `<div class="pop pop-left who-pop" role="dialog" aria-label="Who’s using this?">
+    <p class="who-title">Who’s using this?</p>
+    <ul class="who-list">${list}
+      <li class="who-li"><div class="who-line"><button class="who-item ${cur ? '' : 'on'}" data-act="who-guest"><span class="avatar guest">${PERSON}</span><span>just this device</span>${cur ? '' : '<span class="who-tick">in use</span>'}</button></div></li>
+    </ul>
+    ${add}
+    <p class="who-note">${fb ? 'Sign in on any device to get the same decks. Only names are kept here, never passwords.'
+      : 'Using decks on more than one device needs the one-time sync setup in the README. Until then, decks stay in this browser.'}</p>
+  </div>`;
+  const f = $('#who-pass') || (who.add && $('#who-user')); if (f) f.focus();
+}
+function whoErr(form, msg) { const e = form.querySelector('.who-err'); if (e) e.textContent = msg; }
+async function whoSubmit(form) {
+  if (!fb) return whoErr(form, 'Sync isn’t set up on this site yet.');
+  const isNew = form.id === 'who-new';
+  const name = (isNew ? form.querySelector('#who-user').value : form.dataset.u).trim().toLowerCase();
+  const pass = form.querySelector('input[type="password"]').value;
+  if (!/^[a-z0-9._-]{3,30}$/.test(name)) return whoErr(form, 'Usernames are 3 to 30 letters, numbers, dots, dashes or underscores.');
+  if (pass.length < 6) return whoErr(form, 'Passwords need at least 6 characters.');
+  const btn = form.querySelector('button[type="submit"]'); btn.disabled = true; whoErr(form, '');
+  try {
+    if (isNew && who.mode === 'up') await fb.A.createUserWithEmailAndPassword(fb.auth, toEmail(name), pass);
+    else await fb.A.signInWithEmailAndPassword(fb.auth, toEmail(name), pass);
+    who = { open: false, pick: null, add: false, mode: 'up' }; renderWho();
+  } catch (e) { btn.disabled = false; whoErr(form, authMessage(e && e.code)); }
+}
+function closeWho() { if (!who.open) return; who = { open: false, pick: null, add: false, mode: 'up' }; renderWho(); }
+
 /* ---------- events ---------- */
 let swallowClick = false;
 document.addEventListener('click', e => {
+  if (who.open && !e.target.closest('#who-wrap')) closeWho();
   // a click anywhere outside an open ⋯ menu closes it
   if (ui.menu && !e.target.closest('.dots-wrap')) { ui.menu = null; ui.confirm = false; render(); return; }
   if (ui.plus && !e.target.closest('.plus-wrap')) { closePlus(); return; }
@@ -1568,6 +1682,12 @@ document.addEventListener('click', e => {
     case 'download': ui.menu = null; render(); return downloadDeck(id);
     case 'login-mode': loginMode = loginMode === 'in' ? 'up' : 'in'; return render();
     case 'sign-out': if (fb) fb.A.signOut(fb.auth); return;
+    case 'who': if (who.open) return closeWho(); who = { open: true, pick: null, add: false, mode: 'up' }; return renderWho();
+    case 'who-pick': { const u = a.dataset.u; if (account && account.name === u) return closeWho(); who.pick = who.pick === u ? null : u; who.add = false; return renderWho(); }
+    case 'who-forget': forgetProfile(a.dataset.u); if (who.pick === a.dataset.u) who.pick = null; return renderWho();
+    case 'who-guest': if (account && fb) fb.A.signOut(fb.auth); return closeWho();
+    case 'who-add': who.add = true; who.pick = null; return renderWho();
+    case 'who-mode': who.mode = who.mode === 'up' ? 'in' : 'up'; return renderWho();
     case 'copy-export': {
       const ta = $('#cp-text'); ta.select();
       if (navigator.clipboard) navigator.clipboard.writeText(ta.value).then(() => toast('Copied'), () => toast('Press Ctrl+C to copy'));
@@ -1600,10 +1720,12 @@ document.addEventListener('touchend', e => {
 
 const SUBMITS = { 'im-form': () => doImport(), 'add-form': () => submitAdd(), 'rename-form': () => finishRename(true), 'login-form': () => submitLogin() };
 document.addEventListener('submit', e => {
+  if (e.target.id === 'who-signin' || e.target.id === 'who-new') { e.preventDefault(); return whoSubmit(e.target); }
   if (e.target.classList.contains('edit-form')) { e.preventDefault(); return saveEditForm(e.target); }
   const f = SUBMITS[e.target.id]; if (f) { e.preventDefault(); f(); }
 });
 document.addEventListener('keydown', e => {
+  if (who.open) { if (e.key === 'Escape') { e.preventDefault(); return closeWho(); } if (e.target.closest && e.target.closest('#who-wrap')) return; }
   if (cm) { // the cover window takes the keyboard while it's open
     if (e.key === 'Escape') { e.preventDefault(); return closeCoverModal(); }
     if ((e.key === 'Enter' || e.key === ' ') && e.target.matches && e.target.matches('label[for="cv-file"]')) { e.preventDefault(); return e.target.click(); }

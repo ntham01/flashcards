@@ -205,10 +205,10 @@ main.shell { padding-block: 28px 72px; }
 .arrow { width: 44px; height: 44px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; color: var(--ink); flex: none; transition: background .12s, color .12s; }
 .arrow:hover:not(:disabled) { background: var(--rule); }
 .arrow:disabled { color: var(--faint); cursor: default; }
-.back { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; color: var(--mid); margin-left: -2px; min-width: 0; }
-.back span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.back svg { width: 20px; height: 20px; flex: none; }
-.back:hover { color: var(--ink); }
+button.back { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; color: var(--mid); margin-left: -2px; min-width: 0; }
+button.back span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+button.back svg { width: 20px; height: 20px; flex: none; }
+button.back:hover { color: var(--ink); }
 .menu-row { align-items: center; }
 .row-end { display: flex; align-items: center; gap: 10px; flex: none; }
 .row-end svg { width: 22px; height: 22px; }
@@ -583,6 +583,39 @@ html { scrollbar-gutter: stable; }
   .lock .card { padding: 22px 24px; }
   .lock .ct { font-size: clamp(24px, 7vw, 38px); }
 }
+
+/* text width is tied to the card, never to the text: Safari otherwise sized the text area to the whole
+   unwrapped sentence. Fixed one-column tracks, full-width text blocks, centring done with text-align. */
+.flip { grid-template-columns: minmax(0, 1fr); width: 100%; }
+.card { grid-template-columns: minmax(0, 1fr); min-width: 0; width: 100%; }
+.card-body { align-items: stretch; width: 100%; min-width: 0; }
+.card-body > * { width: 100%; max-width: 100%; min-width: 0; margin-inline: auto; box-sizing: border-box; }
+.card-body > .cs, .card-body > .cover-desc { max-width: min(36ch, 100%); }
+.cover-desc .desc-empty { display: block; }
+.card-meta { width: 100%; }
+/* the row above the card: colours + cover on one line, front/back never splits mid-label */
+.study-top { flex-wrap: wrap; row-gap: 12px; }
+.theme-row { flex-wrap: nowrap; }
+.seg-inline { flex-wrap: nowrap; }
+.seg-inline .link { white-space: nowrap; }
+@media (max-width: 600px) {
+  .study-top { flex-direction: column; align-items: flex-start; }
+  .theme-row { width: 100%; justify-content: space-between; }
+}
+
+/* lock-in: drag the card left or right */
+.lock .drag { position: relative; z-index: 1; perspective: 1800px; touch-action: none; cursor: grab; will-change: transform;
+  transition: transform .34s cubic-bezier(.3, 1.35, .5, 1), opacity .2s ease; }
+.lock .drag.dragging { transition: none; cursor: grabbing; }
+.lock .drag.flying { transition: transform .26s cubic-bezier(.5, 0, .9, .6), opacity .26s ease-in; }
+.lock .card-zone { touch-action: none; }
+.stamp { position: absolute; top: 22px; z-index: 6; width: 58px; height: 58px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  background: rgba(247, 246, 242, .96); box-shadow: 0 6px 18px -8px rgba(0, 0, 0, .5); opacity: 0; pointer-events: none; transition: opacity .2s ease; }
+.drag.dragging .stamp { transition: none; }
+.stamp.yes { right: 22px; color: #1B1B1A; transform: rotate(10deg); }
+.stamp.no { left: 22px; color: #D9472F; transform: rotate(-10deg); }
+.stamp svg { width: 28px; height: 28px; }
+@media (prefers-reduced-motion: reduce) { .lock .drag, .lock .drag.flying { transition: none; } }
 </style>
 <script src="firebase-config.js"></script>
 </head>
@@ -1549,7 +1582,7 @@ const CROSS = '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true
 function enterLock() {
   const d = decks[viewDeck]; if (!d || !d.cards.length) return;
   const start = () => {
-    lock = { deckId: d.id, queue: d.cards.map(c => c.id), pos: 0, done: new Set(), flipped: false, enter: '' };
+    lock = { deckId: d.id, queue: d.cards.map(c => c.id), pos: 0, done: new Set(), flipped: false, enter: '', busy: false };
     document.body.classList.remove('locking'); document.body.classList.add('lock-mode');
     closePanels(); render(); window.scrollTo(0, 0);
   };
@@ -1608,9 +1641,12 @@ function renderLock(app) {
     const meta = esc(d.name);
     card = `<div class="card-zone" id="zone" data-act="flip" role="button" tabindex="0" aria-label="Flip card">
       <div class="cardstack ${enter}" data-depth="${Math.min(2, len - lock.pos - 1)}" style="${deckVar}">
-        <div class="flip ${lock.flipped ? 'flipped' : ''}" id="flip">
-          <div class="card front" aria-hidden="${lock.flipped}">${face(c[a[0]], c[a[1]], a[2], meta)}<div class="card-foot"><span>tap to flip</span></div></div>
-          <div class="card back" aria-hidden="${!lock.flipped}">${face(c[b[0]], c[b[1]], b[2], meta)}<div class="card-foot"><span>tap to flip back</span></div></div>
+        <div class="drag" id="drag">
+          <span class="stamp no" aria-hidden="true">${CROSS}</span><span class="stamp yes" aria-hidden="true">${CHECK}</span>
+          <div class="flip ${lock.flipped ? 'flipped' : ''}" id="flip">
+            <div class="card front" aria-hidden="${lock.flipped}">${face(c[a[0]], c[a[1]], a[2], meta)}<div class="card-foot"><span>tap to flip · drag to sort</span></div></div>
+            <div class="card back" aria-hidden="${!lock.flipped}">${face(c[b[0]], c[b[1]], b[2], meta)}<div class="card-foot"><span>tap to flip back</span></div></div>
+          </div>
         </div></div></div>`;
   }
   app.innerHTML = `<div class="lock">
@@ -1623,18 +1659,77 @@ function renderLock(app) {
     </div></div>
   </div>`;
 }
-function judge(knew) {
+function judge(knew, thrown) {
   if (!lock || lock.pos >= lock.queue.length) return;
   if (knew) lock.done.add(lock.queue[lock.pos]);
   const btn = $(knew ? '.judge.yes' : '.judge.no'); if (btn) btn.classList.add('hit');
-  lock.pos++; lock.flipped = false; lock.enter = 'r';
-  setTimeout(render, calm() ? 0 : 120);
+  lock.pos++; lock.flipped = false; lock.enter = thrown ? '' : 'r'; lock.busy = false;
+  if (thrown) render(); else setTimeout(render, calm() ? 0 : 120);
 }
+/* drag the card: right = knew it, left = didn't. Past the line (or a quick flick) it flies off; otherwise it springs back */
+const phoneLike = () => window.matchMedia && matchMedia('(hover: none), (max-width: 600px)').matches;
+function flyOff(el, dir, done) {
+  lock.busy = true;
+  el.classList.remove('dragging'); el.classList.add('flying');
+  el.style.transform = `translateX(${dir * (window.innerWidth * .8 + 240)}px) rotate(${dir * 22}deg)`;
+  el.style.opacity = '0';
+  setTimeout(done, 260);
+}
+function judgeBtn(knew) { // ✓ / ✕ buttons and arrow keys throw the card the same way (not on phones)
+  if (!lock || lock.busy || lock.pos >= lock.queue.length) return;
+  const el = $('.lock #drag');
+  if (!el || calm() || phoneLike()) return judge(knew);
+  const s = el.querySelector(knew ? '.stamp.yes' : '.stamp.no'); if (s) s.style.opacity = 1;
+  flyOff(el, knew ? 1 : -1, () => judge(knew, true));
+}
+let ld = null;
+function paintDrag() {
+  if (!ld) return; ld.raf = null;
+  const { el, dx } = ld, k = Math.min(1, Math.abs(dx) / 110);
+  el.style.transform = `translateX(${dx}px) rotate(${dx / 18}deg)`;
+  el.querySelector('.stamp.yes').style.opacity = dx > 0 ? k : 0;
+  el.querySelector('.stamp.no').style.opacity = dx < 0 ? k : 0;
+}
+document.addEventListener('pointerdown', e => {
+  if (!lock || lock.busy || e.button > 0) return;
+  const el = e.target.closest('.lock #drag'); if (!el || lock.pos >= lock.queue.length) return;
+  ld = { el, id: e.pointerId, x0: e.clientX, y0: e.clientY, dx: 0, on: false, t: performance.now(), raf: null };
+});
+document.addEventListener('pointermove', e => {
+  if (!ld || e.pointerId !== ld.id) return;
+  const dx = e.clientX - ld.x0, dy = e.clientY - ld.y0;
+  if (!ld.on) {
+    if (Math.abs(dx) < 6 || Math.abs(dx) < Math.abs(dy)) return;
+    ld.on = true; ld.el.classList.add('dragging');
+    try { ld.el.setPointerCapture(e.pointerId); } catch {}
+  }
+  if (Math.abs(dx - ld.dx) > 1) { ld.v = (dx - ld.dx) / Math.max(1, performance.now() - ld.t); ld.t = performance.now(); }
+  ld.dx = dx;
+  if (!ld.raf) ld.raf = requestAnimationFrame(paintDrag);
+});
+function endLockDrag(e, cancelled) {
+  if (!ld || e.pointerId !== ld.id) return;
+  const d = ld; ld = null; if (d.raf) cancelAnimationFrame(d.raf);
+  if (!d.on) return; // just a tap: the click flips the card
+  swallowClick = true; setTimeout(() => { swallowClick = false; }, 350);
+  const w = d.el.getBoundingClientRect().width || 300;
+  const throwIt = !cancelled && (Math.abs(d.dx) > Math.min(140, w * .3) || (Math.abs(d.v || 0) > .6 && Math.abs(d.dx) > 40 && Math.sign(d.v) === Math.sign(d.dx)));
+  if (!throwIt) {
+    d.el.classList.remove('dragging');
+    d.el.style.transform = '';
+    d.el.querySelectorAll('.stamp').forEach(s => { s.style.opacity = 0; });
+    return;
+  }
+  const dir = Math.sign(d.dx);
+  flyOff(d.el, dir, () => judge(dir > 0, true));
+}
+document.addEventListener('pointerup', e => endLockDrag(e, false));
+document.addEventListener('pointercancel', e => endLockDrag(e, true));
 function restartLock() {
   const d = decks[lock.deckId]; if (!d) return;
   let ids = d.cards.filter(c => !lock.done.has(c.id)).map(c => c.id);
   if (!ids.length) { lock.done.clear(); ids = d.cards.map(c => c.id); }
-  Object.assign(lock, { queue: ids, pos: 0, flipped: false, enter: 'r' });
+  Object.assign(lock, { queue: ids, pos: 0, flipped: false, enter: 'r', busy: false });
   render();
 }
 
@@ -1724,8 +1819,8 @@ document.addEventListener('click', e => {
     case 'flip': if (swallowClick) { swallowClick = false; return; } return flip();
     case 'lock-in': return enterLock();
     case 'lock-exit': return exitLock();
-    case 'lock-yes': return judge(true);
-    case 'lock-no': return judge(false);
+    case 'lock-yes': return judgeBtn(true);
+    case 'lock-no': return judgeBtn(false);
     case 'lock-restart': return restartLock();
     case 'prev': return step(-1);
     case 'next': return step(1);
@@ -1783,7 +1878,7 @@ document.addEventListener('focusout', e => {
 });
 // swipe left / right on the card
 let touchStart = null;
-document.addEventListener('touchstart', e => { if (view === 'overview' && e.target.closest('#card-area .cardstack, .lock .cardstack')) touchStart = { x: e.touches[0].clientX, y: e.touches[0].clientY }; }, { passive: true });
+document.addEventListener('touchstart', e => { if (view === 'overview' && e.target.closest('#card-area .cardstack')) touchStart = { x: e.touches[0].clientX, y: e.touches[0].clientY }; }, { passive: true });
 document.addEventListener('touchend', e => {
   if (!touchStart) return;
   const dx = e.changedTouches[0].clientX - touchStart.x, dy = e.changedTouches[0].clientY - touchStart.y;
@@ -1810,8 +1905,8 @@ document.addEventListener('keydown', e => {
   if (lock && !cm && !e.ctrlKey && !e.metaKey && !e.altKey) {
     if (e.key === 'Escape') { e.preventDefault(); return exitLock(); }
     if (e.target.tagName === 'BUTTON' && (e.key === ' ' || e.key === 'Enter')) return;
-    if (e.key === 'ArrowRight') { e.preventDefault(); return judge(true); }
-    if (e.key === 'ArrowLeft') { e.preventDefault(); return judge(false); }
+    if (e.key === 'ArrowRight') { e.preventDefault(); return judgeBtn(true); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); return judgeBtn(false); }
     if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); return lock.pos >= lock.queue.length ? restartLock() : flip(); }
     return;
   }

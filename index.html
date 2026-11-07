@@ -563,6 +563,10 @@ main.shell { padding-block: var(--gap) 80px; }
   .flip.flipped > .card.back { opacity: 1; }
   .card-zone .cardstack, .card-zone:hover .cardstack { transform: none !important; transition: none !important; }
 }
+
+/* the page is always the same width, scrollbar or not, so nothing (like the logo) shifts between pages */
+html { scrollbar-gutter: stable; }
+@supports not (scrollbar-gutter: stable) { html { overflow-y: scroll; } }
 </style>
 <script src="firebase-config.js"></script>
 </head>
